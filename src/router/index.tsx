@@ -1,11 +1,12 @@
-
 import {
     createBrowserRouter,
     Navigate,
     Outlet,
     useLocation,
 } from 'react-router'
-import { useAuth } from '@/hooks/useAuth'
+import { useAuth } from '../hooks/useAuth'
+import StoreLayout from '../layouts/StoreLayouts'
+import Home from '../pages/home/Home'
   
 function ProtectedRoute() {
   const auth = useAuth()
@@ -22,6 +23,10 @@ function ProtectedRoute() {
 }
   
 function PublicRoute() {
+  return <Outlet />
+}
+
+function GuestRoute() {
   const auth = useAuth()
   const isAuthenticated = !auth.isJwtExpired()
 
@@ -31,26 +36,49 @@ function PublicRoute() {
 
   return <Outlet />
 }
-  
+
 export const router = createBrowserRouter([
+  // Rotas públicas
   {
     element: <PublicRoute />,
     children: [
-      // {
-      //   path: '/login',
-      //   lazy: () => import('@/pages/Login'),
-      // },
+      // Rotas públicas: usuário logado ou deslogado.
+      {
+        element: <StoreLayout />,
+        children: [
+          { path: '/', element: <Home />, },
+          // { path: '/search', element: <Search />, },
+          // { path: '/products/:id', element: <Product />, },
+        ],
+      },
+
+      // Rotas públicas: somente usuário deslogado.
+      {
+        element: <GuestRoute />,
+        children: [
+          // { path: '/login', element: <Login /> },
+          // { path: '/register', element: <Register /> },
+        ],
+      },
     ],
   },
+
+  // Rotas privadas: somente usuário autenticado.
   {
     element: <ProtectedRoute />,
     children: [
-      // Adicionar as rotas protegidas aqui.
+      {
+        element: <StoreLayout />,
+        children: [
+          // { path: '/cart', element: <Cart /> },
+          // { path: '/orders', element: <Orders /> },
+        ],
+      },
     ],
   },
+
   {
     path: '*',
-    element: <Navigate to="/login" replace />,
+    element: <Navigate to="/" replace />,
   },
 ])
-  
