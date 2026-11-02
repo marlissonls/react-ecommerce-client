@@ -1,5 +1,3 @@
-import type { PageResponse } from "./pagination"
-
 export type BrandPublicView = {
   id: string,
   title: string,
@@ -8,4 +6,4 @@ export type BrandPublicView = {
   createdAt: Date
 }
 
-export type BrandPagePublicView = PageResponse<BrandPublicView>
+export type BrandListPublicView = BrandPublicView[]

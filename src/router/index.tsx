@@ -4,9 +4,10 @@ import {
     Outlet,
     useLocation,
 } from 'react-router'
-import { useAuth } from '../hooks/useAuth'
-import StoreLayout from '../layouts/StoreLayouts'
-import Home from '../pages/home/Home'
+import { useAuth } from '@/hooks/useAuth'
+import StoreLayout from '@/layouts/StoreLayouts'
+import Home from '@/pages/Home'
+import Catalog from '@/pages/Catalog'
   
 function ProtectedRoute() {
   const auth = useAuth()
@@ -46,9 +47,10 @@ export const router = createBrowserRouter([
       {
         element: <StoreLayout />,
         children: [
-          { path: '/', element: <Home />, },
+          { path: "/", element: <Home /> },
+          { path: "/category/:slug", element: <Catalog /> },
           // { path: '/search', element: <Search />, },
-          // { path: '/products/:id', element: <Product />, },
+          // { path: '/products/:slug', element: <Product />, },
         ],
       },
 
