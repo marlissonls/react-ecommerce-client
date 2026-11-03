@@ -7,6 +7,7 @@ import {
 import { useAuth } from '@/hooks/useAuth'
 import StoreLayout from '@/layouts/StoreLayouts'
 import Home from '@/pages/Home'
+import Category from '@/pages/Category'
 import Catalog from '@/pages/Catalog'
   
 function ProtectedRoute() {
@@ -48,8 +49,8 @@ export const router = createBrowserRouter([
         element: <StoreLayout />,
         children: [
           { path: "/", element: <Home /> },
-          { path: "/category/:slug", element: <Catalog /> },
-          // { path: '/search', element: <Search />, },
+          { path: "/categoria/:slug", element: <Category /> },
+          { path: '/catalogo', element: <Catalog />, },
           // { path: '/products/:slug', element: <Product />, },
         ],
       },

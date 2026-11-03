@@ -1,10 +1,9 @@
 import { useEffect, useMemo, useState } from "react"
-import { useParams } from "react-router"
+import { useSearchParams } from "react-router"
 
 import api from "@/api"
 import type { 
   CategoryListPublicView,
-  CategoryPublicView,
   BrandListPublicView,
   ProductPublicView,
   ProductPagePublicView } from "@/types"
@@ -16,6 +15,7 @@ import type { ProductFiltersValue } from "@/components/ProductFilters"
 const PAGE_SIZE = 12
 
 const initialFilters: ProductFiltersValue = {
+  search: "",
   category: "",
   brand: "",
   minPrice: "",
@@ -24,20 +24,22 @@ const initialFilters: ProductFiltersValue = {
 }
 
 function Catalog() {
-  const { slug } = useParams<{ slug: string }>()
-
   const [categories, setCategories] = useState<CategoryListPublicView>([])
-  const [selectedCategory, setSelectedCategory] = useState<CategoryPublicView | null>(null)
-
   const [brands, setBrands] = useState<BrandListPublicView>([])
   const [products, setProducts] = useState<ProductPublicView[]>([])
+  const [searchParams, setSearchParams] = useSearchParams()
+
   const [total, setTotal] = useState(0)
   const [loading, setLoading] = useState(true)
   const [catalogLoading, setCatalogLoading] = useState(true)
 
-  const [filters, setFilters] = useState<ProductFiltersValue>(initialFilters)
   const [sort, setSort] = useState("relevance")
   const [page, setPage] = useState(0)
+  const [filters, setFilters] = useState<ProductFiltersValue>(() => ({
+    ...initialFilters,
+    search: searchParams.get("search") ?? "",
+    onSale: searchParams.get("onSale") === "true",
+  }))
 
   // Carrega categorias ou marcas
   useEffect(() => {
@@ -45,7 +47,7 @@ function Catalog() {
 
     async function loadCatalogItems() {
       setCatalogLoading(true)
-      setSelectedCategory(null)
+      // setSelectedCategory(null)
 
       try {
         const categoriesResponse = await api.get<CategoryListPublicView>("/categories")
@@ -58,15 +60,6 @@ function Catalog() {
 
         setBrands(brandsResponse.data)
 
-        const category = categoriesResponse.data.find((entry) => entry.slug === slug)
-
-        setSelectedCategory(category ?? null)
-
-        setFilters({
-          ...initialFilters,
-          category: category?.id ?? "",
-        })
-
         setPage(0)
         setSort("relevance")
       } catch (error) {
@@ -74,7 +67,7 @@ function Catalog() {
 
         if (active) {
           setCategories([])
-          setSelectedCategory(null)
+          setBrands([])
         }
       } finally {
         if (active) {
@@ -88,18 +81,45 @@ function Catalog() {
     return () => {
       active = false
     }
-  }, [slug])
+  }, [])
+
+  // useEffect(() => {
+  //   const search = searchParams.get("search") ?? ""
+  
+  //   setFilters((current) => {
+  //     if (current.search === search) return current
+  
+  //     return {
+  //       ...current,
+  //       search,
+  //     }
+  //   })
+  
+  //   setPage(0)
+  // }, [searchParams])
+
+  useEffect(() => {
+    const search = searchParams.get("search") ?? ""
+    const onSale = searchParams.get("onSale") === "true"
+  
+    setFilters((current) => {
+      if (current.search === search && current.onSale === onSale) {
+        return current
+      }
+  
+      return {
+        ...current,
+        search,
+        onSale,
+      }
+    })
+  
+    setPage(0)
+  }, [searchParams])
 
   // Carrega produtos conforme o contexto e os filtros
   useEffect(() => {
     if (catalogLoading) return
-
-    if (!selectedCategory) {
-      setProducts([])
-      setTotal(0)
-      setLoading(false)
-      return
-    }
 
     let active = true
 
@@ -110,6 +130,7 @@ function Catalog() {
         const params = {
           page,
           size: PAGE_SIZE,
+          ...(filters.search && { search: filters.search }),
           ...(filters.category && { category: filters.category }),
           ...(filters.brand && { brand: filters.brand }),
           ...(filters.minPrice && { minPrice: filters.minPrice }),
@@ -144,7 +165,7 @@ function Catalog() {
     return () => {
       active = false
     }
-  }, [catalogLoading, selectedCategory, filters, page])
+  }, [catalogLoading, filters, page])
 
   // Ordenação local por preço
   const sortedProducts = useMemo(() => {
@@ -161,40 +182,43 @@ function Catalog() {
     return result
   }, [products, sort])
 
-  function handleFiltersChange(newFilters: ProductFiltersValue) {
-    setFilters({
-      ...newFilters,
-      category: selectedCategory?.id ?? "",
-    })
+  // function handleFiltersChange(newFilters: ProductFiltersValue) {
+  //   setFilters(newFilters)
+  //   setPage(0)
+  
+  //   setSearchParams(
+  //     newFilters.search
+  //       ? { search: newFilters.search }
+  //       : {},
+  //     { replace: true },
+  //   )
+  // }
 
+  function handleFiltersChange(newFilters: ProductFiltersValue) {
+    setFilters(newFilters)
     setPage(0)
+  
+    const params = new URLSearchParams()
+  
+    if (newFilters.search) {
+      params.set("search", newFilters.search)
+    }
+  
+    if (newFilters.onSale) {
+      params.set("onSale", "true")
+    }
+  
+    setSearchParams(params, { replace: true })
   }
 
   function handleResetFilters() {
-    setFilters({
-      ...initialFilters,
-      category: selectedCategory?.id ?? "",
-    })
-
+    setFilters(initialFilters)
     setSort("relevance")
     setPage(0)
+    setSearchParams({}, { replace: true })
   }
 
   const totalPages = Math.ceil(total / PAGE_SIZE)
-
-  if (!catalogLoading && !selectedCategory) {
-    return (
-      <main className="mx-auto max-w-[1280px] px-4 py-16 text-center sm:px-6 lg:px-8">
-        <h1 className="text-2xl font-bold text-[#272B28]">
-          Categoria não encontrada
-        </h1>
-
-        <p className="mt-2 text-sm text-[#747A74]">
-          Não encontramos a categoria solicitada.
-        </p>
-      </main>
-    )
-  }
 
   return (
     <main className="bg-[#FCFCFA]">
@@ -202,25 +226,22 @@ function Catalog() {
         <Breadcrumb
           items={[
             { label: "Início", href: "/" },
-            { label: "Categorias", href: "/category", },
-            { label: selectedCategory?.title ?? "Carregando..." },
+            { label: "Catálogo", href: "/catalog", },
           ]}
         />
 
         <div className="mb-8">
           <span className="text-xs font-semibold uppercase tracking-[0.2em] text-[#747A74]">
-            Explore nossas categorias
+            Explore nossos produtos
           </span>
 
           <h1 className="mt-2 text-2xl font-bold tracking-tight text-[#272B28] sm:text-3xl">
-            {selectedCategory?.title ?? "Carregando categoria..."}
+            Catálogo
           </h1>
 
-          {selectedCategory?.description && (
-            <p className="mt-2 max-w-2xl text-sm leading-relaxed text-[#747A74]">
-              {selectedCategory.description}
-            </p>
-          )}
+          <p className="mt-2 max-w-2xl text-sm leading-relaxed text-[#747A74]">
+            Todos os produtos
+          </p>
         </div>
 
         <ProductListing
@@ -236,7 +257,6 @@ function Catalog() {
           page={page}
           totalPages={totalPages}
           onPageChange={setPage}
-          showCategoryFilter={false}
         />
       </div>
     </main>

@@ -4,6 +4,7 @@ type FilterOption = {
 }
 
 export type ProductFiltersValue = {
+  search?: string
   category: string
   brand: string
   minPrice: string
