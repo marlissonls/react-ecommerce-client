@@ -5,7 +5,7 @@ import {
     useLocation,
 } from 'react-router'
 import { useAuth } from '@/hooks/useAuth'
-import StoreLayout from '@/layouts/StoreLayouts'
+import StoreLayout from '@/layouts/StoreLayout'
 import Home from '@/pages/Home'
 import Category from '@/pages/Category'
 import Catalog from '@/pages/Catalog'
