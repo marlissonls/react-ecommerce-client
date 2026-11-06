@@ -1,89 +1,102 @@
+import axios from 'axios'
 
-import axios from 'axios';
-
-const API_URL = import.meta.env.VITE_API;
+const API_URL = import.meta.env.VITE_API
 
 const api = axios.create({
   baseURL: API_URL,
   headers: {
     'Content-Type': 'application/json',
   },
-});
+})
 
 const refreshApi = axios.create({
   baseURL: API_URL,
   headers: {
     'Content-Type': 'application/json',
   },
-});
+})
 
 api.interceptors.request.use((config) => {
-  const auth = localStorage.getItem('auth');
+  const auth = localStorage.getItem('auth')
 
   if (auth) {
-    const session = JSON.parse(auth);
+    const session = JSON.parse(auth)
 
-    if (session.AccessToken) {
-      config.headers.Authorization = `Bearer ${session.AccessToken}`;
-    }
-
-    if (session._id) {
-      config.headers.user = session._id;
+    if (session.accessToken) {
+      config.headers.Authorization = `Bearer ${session.accessToken}`
     }
   }
 
-  return config;
-});
+  return config
+})
 
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
-    const originalRequest = error.config;
+    const originalRequest = error.config
+    const sessionExpired = error.response?.status !== 401
 
     if (
-      error.response?.status !== 401 ||
+      sessionExpired ||
       !originalRequest ||
-      originalRequest._retry
+      originalRequest._retried
     ) {
-      return Promise.reject(error);
+      return Promise.reject(error)
     }
 
-    originalRequest._retry = true;
-
-    const auth = localStorage.getItem('auth');
-
-    if (!auth) {
-      return Promise.reject(error);
-    }
+    originalRequest._retried = true
 
     try {
-      const session = JSON.parse(auth);
+      const session = await refresh()
 
-      if (!session.RefreshToken) {
-        return Promise.reject(error);
+      originalRequest.headers.Authorization =
+        `Bearer ${session.accessToken}`
+
+      return api(originalRequest)
+    } catch (refreshError) {
+      localStorage.removeItem('auth')
+      window.location.href = '/login'
+
+      return Promise.reject(refreshError)
+    }
+  },
+)
+
+let refreshPromise: Promise<any> | null = null
+
+export async function refresh() {
+  if (!refreshPromise) {
+    refreshPromise = (async () => {
+      const auth = localStorage.getItem('auth')
+
+      if (!auth) {
+        throw new Error('Sessão não encontrada')
       }
 
-      const response = await refreshApi.get('/users/auth', {
-        headers: {
-          RefreshToken: session.RefreshToken,
-        },
-      });
+      const session = JSON.parse(auth)
+
+      if (!session.refreshToken) {
+        throw new Error('Refresh token não encontrado')
+      }
+
+      const response = await refreshApi.post('/auth/refresh', {
+        refreshToken: `Bearer ${session.refreshToken}`,
+      })
 
       const newSession = {
         ...session,
-        AccessToken: response.data.AccessToken,
-      };
+        ...response.data,
+      }
 
-      localStorage.setItem('auth', JSON.stringify(newSession));
+      localStorage.setItem('auth', JSON.stringify(newSession))
 
-      originalRequest.headers.Authorization =
-        `Bearer ${response.data.AccessToken}`;
+      return newSession
+    })().finally(() => {
+      refreshPromise = null
+    })
+  }
 
-      return api(originalRequest);
-    } catch (refreshError) {
-      return Promise.reject(refreshError);
-    }
-  },
-);
+  return refreshPromise
+}
 
-export default api;
+export default api

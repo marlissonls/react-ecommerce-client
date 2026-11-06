@@ -1,51 +1,53 @@
-
 import { useCallback, useState } from 'react'
+import { refresh } from '@/api'
 
-const baseRoutes = [
+const publicRoutes = [
+  'Login',
+  'Register',
   'Home',
-  'Products',
-  'ProductDetails',
-  'Cart',
-  'UserProfile',
+  'Catalog',
+  'Category',
+]
+
+const customerRoutes = [
+  // 'Customer',
+  // 'ShoppingCart',
+  // 'Checkout',
+  // 'Orders',
+]
+
+const managerRoutes = [
+  'ProductsManagement',
+  'ProductsManagementDetails',
 ]
 
 const adminRoutes = [
-  'Dashboard',
-  'ProductsManagement',
-  'CategoriesManagement',
-  'OrdersManagement',
-  'UsersManagement',
+  // 'UserManagement',
+  // 'UserManagementDetails'
 ]
 
 const rolePermissions: Record<string, string[]> = {
-  ADMIN: [...baseRoutes, ...adminRoutes],
-  CUSTOMER: [...baseRoutes],
-  DEFAULT: [],
-}
-
-interface Company {
-  _id: string
-  name: string
-  cnpj: string
+  ROLE_CUSTOMER: [...publicRoutes, ...customerRoutes],
+  ROLE_MANAGER: [...publicRoutes, ...managerRoutes],
+  ROLE_ADMIN: [...publicRoutes, ...adminRoutes],
 }
 
 export interface IUser {
-  _id: string
-  name: string
+  id: string
   email: string
-  role: string
-  AccessToken: string
-  RefreshToken: string
-  company?: Company
+  authenticated: boolean
+  roles: string[]
+  accessToken: string
+  refreshToken: string
 }
 
 const emptyUser: IUser = {
-  _id: '',
-  name: '',
+  id: '',
   email: '',
-  role: 'DEFAULT',
-  AccessToken: '',
-  RefreshToken: '',
+  authenticated: false,
+  roles: ['ROLE_CUSTOMER'],
+  accessToken: '',
+  refreshToken: '',
 }
 
 function getStoredUser(): IUser {
@@ -66,20 +68,34 @@ function getStoredUser(): IUser {
 export function useAuth() {
   const [user, setUser] = useState<IUser>(getStoredUser)
 
+  const saveSession = useCallback((session: IUser) => {
+    localStorage.setItem('auth', JSON.stringify(session))
+    setUser(session)
+  }, [])
+
+  const logout = useCallback(() => {
+    localStorage.removeItem('auth')
+    setUser(emptyUser)
+  }, [])
+
   const hasPermission = useCallback(
-    (resource: string) => {
-      return rolePermissions[user.role]?.includes(resource) ?? false
-    },
-    [user.role],
+    (resource: string) =>
+      user.roles.some((role) =>
+        rolePermissions[role]?.includes(resource)
+      ),
+    [user.roles],
   )
 
-  const isJwtExpired = useCallback((): boolean => {
-    if (!user.AccessToken) return true
+  const isSessionExpired = useCallback((): boolean => {
+    if (!user.accessToken) return true
 
     try {
-      const [, payload] = user.AccessToken.split('.')
+      const [, payload] = user.accessToken.split('.')
 
-      if (!payload) return true
+      if (!payload) {
+        logout()
+        return true
+      }
 
       const normalizedPayload = payload
         .replace(/-/g, '+')
@@ -95,29 +111,44 @@ export function useAuth() {
 
       const { exp } = JSON.parse(decodedPayload)
 
-      if (typeof exp !== 'number') return true
+      if (typeof exp !== 'number') {
+        logout()
+        return true
+      }
 
       return Math.floor(Date.now() / 1000) >= exp
     } catch {
+      logout()
       return true
     }
-  }, [user.AccessToken])
+  }, [user.accessToken, logout])
 
-  const saveSession = useCallback((session: IUser) => {
-    localStorage.setItem('auth', JSON.stringify(session))
-    setUser(session)
-  }, [])
-
-  const logout = useCallback(() => {
-    localStorage.removeItem('auth')
-    setUser(emptyUser)
-  }, [])
+  const refreshSession = useCallback(async () => {
+    try {
+      const session = await refresh()
+      setUser(session)
+      return true
+    } catch {
+      logout()
+      return false
+    }
+  }, [logout])
+  
+  const verifySession = useCallback(async () => {
+    if (!isSessionExpired()) {
+      return true
+    }
+  
+    return await refreshSession()
+  }, [isSessionExpired, refreshSession])
 
   return {
     user,
-    hasPermission,
-    isJwtExpired,
     saveSession,
+    hasPermission,
+    verifySession,
+    isSessionExpired,
+    refreshSession,
     logout,
   }
 }

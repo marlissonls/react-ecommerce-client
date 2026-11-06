@@ -9,6 +9,8 @@ export type ProductPublicView = {
   salePrice: number | null;
   stock: number;
   featured: boolean;
+  image: ProductImageView | null
+  images?: ProductImageView[]
   rating: number | null;
   ratingCount: number;
   categoryId: string;
