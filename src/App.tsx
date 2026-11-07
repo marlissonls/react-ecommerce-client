@@ -1,8 +1,14 @@
-import { RouterProvider } from 'react-router';
-import { router } from './router';
+import { RouterProvider } from 'react-router'
+import { router } from './router'
+import { CartProvider } from './hooks/useCart'
 
 function App() {
-  return <RouterProvider router={router} />;
+  return (
+    <CartProvider>
+      <RouterProvider router={router} />
+    </CartProvider>
+  )
 }
 
-export default App;
+
+export default App

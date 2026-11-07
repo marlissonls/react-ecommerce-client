@@ -17,6 +17,7 @@ import ProductManagementDetails from '@/pages/ProductManagementDetails'
 import AuthLayout from '@/layouts/AuthLayout'
 import Login from '@/pages/auth/Login'
 import Register from '@/pages/auth/Register'
+import Product from '@/pages/Product'
   
 function ProtectedRoute() {
   const auth = useAuth()
@@ -86,12 +87,12 @@ export const router = createBrowserRouter([
             element: <AuthLayout />,
             children: [
               { 
-                path: '/login',
+                path: 'login',
                 element: <Login />,
                 handle: 'Login'
               },
               { 
-                path: '/register',
+                path: 'register',
                 element: <Register />,
                 handle: 'Register'
               },
@@ -118,6 +119,11 @@ export const router = createBrowserRouter([
             path: 'catalogo',
             element: <Catalog />,
             handle: 'Catalog',
+          },
+          {
+            path: 'produtos/:slug',
+            element: <Product />,
+            handle: 'Product',
           },
         ],
       },
