@@ -34,10 +34,9 @@ api.interceptors.response.use(
   (response) => response,
   async (error) => {
     const originalRequest = error.config
-    const sessionExpired = error.response?.status !== 401
 
     if (
-      sessionExpired ||
+      error.response?.status !== 401 ||
       !originalRequest ||
       originalRequest._retried
     ) {
@@ -47,10 +46,10 @@ api.interceptors.response.use(
     originalRequest._retried = true
 
     try {
-      const session = await refresh()
+      const newAccessToken = await refresh()
 
       originalRequest.headers.Authorization =
-        `Bearer ${session.accessToken}`
+        `Bearer ${newAccessToken}`
 
       return api(originalRequest)
     } catch (refreshError) {
@@ -90,7 +89,7 @@ export async function refresh() {
 
       localStorage.setItem('auth', JSON.stringify(newSession))
 
-      return newSession
+      return newSession.accessToken
     })().finally(() => {
       refreshPromise = null
     })

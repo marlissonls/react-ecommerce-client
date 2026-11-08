@@ -2,7 +2,6 @@ import {
   createContext,
   useCallback,
   useContext,
-  useEffect,
   useState,
   type ReactNode,
 } from "react";
@@ -44,34 +43,24 @@ type CartProviderProps = {
 
 export function CartProvider({ children }: CartProviderProps) {
   const [cart, setCart] = useState<Cart | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [mutating, setMutating] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const refreshCart = useCallback(async () => {
     try {
+      setLoading(true);
+      setError(null);
+  
       const response = await api.get("/carts");
       setCart(response.data);
-      setError(null);
     } catch {
       setError("Não foi possível carregar o carrinho.");
       throw new Error("Cart loading failed.");
+    } finally {
+      setLoading(false);
     }
   }, []);
-
-  useEffect(() => {
-    const initializeCart = async () => {
-      try {
-        await refreshCart();
-      } catch {
-        // Error is already handled by refreshCart.
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    initializeCart();
-  }, [refreshCart]);
 
   const addItem = useCallback(
     async (productId: string, quantity: number) => {

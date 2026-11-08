@@ -18,6 +18,8 @@ import AuthLayout from '@/layouts/AuthLayout'
 import Login from '@/pages/auth/Login'
 import Register from '@/pages/auth/Register'
 import Product from '@/pages/Product'
+import Customer from '@/pages/Customer'
+import CustomerLayout from '@/layouts/CustomerLayout'
   
 function ProtectedRoute() {
   const auth = useAuth()
@@ -140,6 +142,16 @@ export const router = createBrowserRouter([
           // { path: '/cart', element: <Cart /> },
           // { path: '/orders', element: <Orders /> },
         ],
+      },
+      {
+        element: <CustomerLayout />,
+        children: [
+          {
+            path: 'meus-dados',
+            element: <Customer />,
+            handle: 'Customer',
+          },
+        ]
       },
       {
         path: 'painel',

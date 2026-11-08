@@ -65,7 +65,7 @@ export default function Header({ cartCount = 0 }: HeaderProps) {
   }
 
   return (
-    <header className="w-full border-b border-[#34483A] bg-[#202B24] font-['Inter',sans-serif] text-[#FCFCFA]">
+    <header className="fixed left-0 top-0 z-50 w-full border-b border-[#34483A] bg-[#202B24] font-['Inter',sans-serif] text-[#FCFCFA]">
 
       {/* Cabeçalho principal */}
       <div className="mx-auto flex min-h-[84px] w-[calc(100%-64px)] max-w-[1280px] items-center justify-between gap-8 max-[1024px]:gap-5 max-[640px]:min-h-[68px] max-[640px]:w-[calc(100%-32px)] max-[640px]:flex-wrap max-[640px]:gap-3 max-[640px]:py-3">

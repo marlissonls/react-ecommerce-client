@@ -7,23 +7,31 @@ const publicRoutes = [
   'Home',
   'Catalog',
   'Category',
+  'Product',
 ]
 
 const customerRoutes = [
-  // 'Customer',
+  'Customer',
   // 'ShoppingCart',
   // 'Checkout',
   // 'Orders',
 ]
 
 const managerRoutes = [
+  'Customer', // Temporário
   'ProductsManagement',
   'ProductsManagementDetails',
+  // 'CategoryManagement',
+  // 'CategoryManagementDetails',
+  // 'BrandManagement',
+  // 'BrandManagementDetails'
 ]
 
 const adminRoutes = [
   // 'UserManagement',
-  // 'UserManagementDetails'
+  // 'UserManagementDetails',
+  // 'RoleManagement',
+  // 'RoleManagementDetails'
 ]
 
 const rolePermissions: Record<string, string[]> = {
@@ -34,8 +42,8 @@ const rolePermissions: Record<string, string[]> = {
 
 export interface IUser {
   id: string
+  name: string
   email: string
-  authenticated: boolean
   roles: string[]
   accessToken: string
   refreshToken: string
@@ -43,8 +51,8 @@ export interface IUser {
 
 const emptyUser: IUser = {
   id: '',
+  name: '',
   email: '',
-  authenticated: false,
   roles: ['ROLE_CUSTOMER'],
   accessToken: '',
   refreshToken: '',

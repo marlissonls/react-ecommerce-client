@@ -1,6 +1,7 @@
 interface RegisterFormProps {
   onSubmit: (data: {
     name: string
+    cpf: string
     email: string
     password: string
   }) => void
@@ -34,6 +35,7 @@ export default function RegisterForm({
 
     onSubmit({
       name: formData.get('name') as string,
+      cpf: formData.get('cpf') as string,
       email: formData.get('email') as string,
       password,
     })
@@ -54,6 +56,23 @@ export default function RegisterForm({
           placeholder="Seu nome"
           required
           minLength={3}
+          disabled={loading}
+          className="w-full rounded-md border border-gray-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-[#202B24] disabled:cursor-not-allowed disabled:opacity-60"
+        />
+      </div>
+
+      <div className="space-y-2">
+        <label htmlFor="cpf" className="text-sm font-medium text-[#202B24]">
+          CPF
+        </label>
+
+        <input
+          id="cpf"
+          name="cpf"
+          type="cpf"
+          autoComplete="cpf"
+          placeholder="123.456.789-10"
+          required
           disabled={loading}
           className="w-full rounded-md border border-gray-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-[#202B24] disabled:cursor-not-allowed disabled:opacity-60"
         />
