@@ -24,7 +24,7 @@ type CustomerSidebarProps = {
 }
 
 const SIDEBAR_WIDTH = 248
-// const HEADER_HEIGHT = 133
+const HEADER_HEIGHT = 133
 
 export default function CustomerSidebar({
   onClose,
@@ -190,8 +190,8 @@ export default function CustomerSidebar({
         sx={{
           '& .MuiDrawer-paper': {
             width: SIDEBAR_WIDTH,
-            top: '133px',
-            height: 'calc(100dvh - 133px)',
+            top: `${HEADER_HEIGHT}px`,
+            height: `calc(100% - ${HEADER_HEIGHT}px)`,
             boxSizing: 'border-box',
             borderRight: 'none',
             bgcolor: '#2C382F',
@@ -214,9 +214,9 @@ export default function CustomerSidebar({
       sx={{
         width: SIDEBAR_WIDTH,
         minWidth: SIDEBAR_WIDTH,
-        height: 'calc(100vh - 133px)',
+        height: `calc(100vh - ${HEADER_HEIGHT}px)`,
         position: 'sticky',
-        top: '133px',
+        top: `${HEADER_HEIGHT}px`,
         overflowY: 'auto',
         bgcolor: '#2C382F',
       }}

@@ -12,18 +12,33 @@ import {
 
 import api from '@/api'
 import type { CategoryListPublicView } from '@/types'
+import { useAuth } from '@/hooks/useAuth'
+import { useCart } from '@/hooks/useCart'
 
 type HeaderProps = {
-  cartCount?: number
+  variant?: 'store' | 'panel'
 }
 
-export default function Header({ cartCount = 0 }: HeaderProps) {
+export default function Header({ variant = 'store' }: HeaderProps) {
   const navigate = useNavigate()
+  const { user, logout } = useAuth()
+  const { items } = useCart()
 
   const [search, setSearch] = useState('')
   const [menuOpen, setMenuOpen] = useState(false)
   const [categoriesOpen, setCategoriesOpen] = useState(false)
   const [categories, setCategories] = useState<CategoryListPublicView>([])
+  const [accountMenuOpen, setAccountMenuOpen] = useState(false)
+
+  const handleLogout = () => {
+    setAccountMenuOpen(false)
+    closeMenu()
+    logout()
+  }
+
+  const canAccessPanel = user?.roles.some((role) =>
+    ['ROLE_MANAGER', 'ROLE_ADMIN'].includes(role)
+  )
 
   useEffect(() => {
     let active = true
@@ -65,8 +80,11 @@ export default function Header({ cartCount = 0 }: HeaderProps) {
   }
 
   return (
-    <header className="fixed left-0 top-0 z-50 w-full border-b border-[#34483A] bg-[#202B24] font-['Inter',sans-serif] text-[#FCFCFA]">
-
+    <header
+      className={`w-full border-b border-[#34483A] bg-[#202B24] font-['Inter',sans-serif] text-[#FCFCFA] ${
+        variant === 'panel' ? 'fixed left-0 top-0 z-50' : 'relative'
+      }`}
+    >
       {/* Cabeçalho principal */}
       <div className="mx-auto flex min-h-[84px] w-[calc(100%-64px)] max-w-[1280px] items-center justify-between gap-8 max-[1024px]:gap-5 max-[640px]:min-h-[68px] max-[640px]:w-[calc(100%-32px)] max-[640px]:flex-wrap max-[640px]:gap-3 max-[640px]:py-3">
 
@@ -116,15 +134,74 @@ export default function Header({ cartCount = 0 }: HeaderProps) {
         {/* Ações */}
         <div className="flex shrink-0 items-center gap-6 max-[1024px]:gap-4 max-[640px]:gap-[14px]">
 
-          <Link
-            to="/auth"
-            onClick={closeMenu}
-            className="flex min-h-11 items-center gap-2 text-[13px] font-medium text-[#E8EBE6] no-underline transition-colors hover:text-[#A9B9A9] max-[1024px]:[&>span]:hidden max-[640px]:min-h-10"
-            aria-label="Minha conta"
-          >
-            <UserRound size={21} />
-            <span>Minha conta</span>
-          </Link>
+          <div className="relative">
+            {user.authenticated ? (
+              <button
+                type="button"
+                onClick={() => setAccountMenuOpen((open) => !open)}
+                aria-expanded={accountMenuOpen}
+                aria-label="Menu da conta"
+                className="flex min-h-11 items-center gap-2 text-[13px] font-medium text-[#E8EBE6] transition-colors hover:text-[#A9B9A9]"
+              >
+                <UserRound size={21} />
+                <span className="max-[1024px]:hidden">
+                  {user.name.split(' ')[0]}
+                </span>
+                <ChevronDown
+                  size={16}
+                  className={`transition-transform ${accountMenuOpen ? 'rotate-180' : ''}`}
+                />
+              </button>
+            ) : (
+              <Link
+                to="/meus-dados"
+                onClick={closeMenu}
+                className="flex min-h-11 items-center gap-2 text-[13px] font-medium text-[#E8EBE6] no-underline transition-colors hover:text-[#A9B9A9]"
+              >
+                <UserRound size={21} />
+                <span className="max-[1024px]:hidden">Minha conta</span>
+              </Link>
+            )}
+
+            {user.authenticated && accountMenuOpen && (
+              <div className="absolute right-0 top-full z-50 mt-3 w-52 overflow-hidden rounded-lg border border-[#E2E3DD] bg-white py-2 text-[#272B28] shadow-xl">
+                <Link
+                  to="/meus-dados"
+                  onClick={() => setAccountMenuOpen(false)}
+                  className="block px-4 py-3 text-sm no-underline transition-colors hover:bg-[#F3F1EA]"
+                >
+                  Meus dados
+                </Link>
+
+                <Link
+                  to="/meus-pedidos"
+                  onClick={() => setAccountMenuOpen(false)}
+                  className="block px-4 py-3 text-sm no-underline transition-colors hover:bg-[#F3F1EA]"
+                >
+                  Minhas compras
+                </Link>
+
+                {canAccessPanel && (<Link
+                    to="/painel"
+                    onClick={() => setAccountMenuOpen(false)}
+                    className="block px-4 py-3 text-sm no-underline transition-colors hover:bg-[#F3F1EA]"
+                  >
+                    Painel
+                  </Link>
+                )}
+
+                <div className="my-1 border-t border-[#E2E3DD]" />
+
+                <button
+                  type="button"
+                  onClick={handleLogout}
+                  className="w-full px-4 py-3 text-left text-sm text-red-700 transition-colors hover:bg-[#F3F1EA]"
+                >
+                  Sair
+                </button>
+              </div>
+            )}
+          </div>
 
           <Link
             to="/favorites"
@@ -145,9 +222,9 @@ export default function Header({ cartCount = 0 }: HeaderProps) {
             <span className="relative inline-flex">
               <ShoppingCart size={21} />
 
-              {cartCount > 0 && (
+              {items.length > 0 && (
                 <span className="absolute -right-[9px] -top-2 grid h-[17px] min-w-[17px] place-items-center rounded-full bg-[#A9B9A9] px-1 text-[10px] font-bold text-[#202B24]">
-                  {cartCount}
+                  {items.length}
                 </span>
               )}
             </span>

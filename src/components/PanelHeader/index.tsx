@@ -1,50 +1,20 @@
-import { useState } from 'react'
+import { Link } from 'react-router'
 import {
   AppBar,
-  Avatar,
   Box,
   Divider,
-  IconButton,
-  Menu,
-  MenuItem,
   Toolbar,
   Typography,
 } from '@mui/material'
-
-import { AccountCircleOutlined } from '@mui/icons-material'
+import { UserRound } from 'lucide-react'
+import { useAuth } from '@/hooks/useAuth'
 
 type PanelHeaderProps = {
   title: string
-  userName?: string
-  onProfileClick?: () => void
-  onLogout?: () => void
 }
 
-export default function PanelHeader({
-  title,
-  userName = 'Usuário',
-  onProfileClick,
-  onLogout,
-}: PanelHeaderProps) {
-  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
-
-  const handleProfileMenu = (event: React.MouseEvent<HTMLElement>) => {
-    setAnchorEl(event.currentTarget)
-  }
-
-  const handleClose = () => {
-    setAnchorEl(null)
-  }
-
-  const handleProfileClick = () => {
-    handleClose()
-    onProfileClick?.()
-  }
-
-  const handleLogout = () => {
-    handleClose()
-    onLogout?.()
-  }
+export default function PanelHeader({ title }: PanelHeaderProps) {
+  const { user } = useAuth()
 
   return (
     <AppBar
@@ -87,53 +57,13 @@ export default function PanelHeader({
 
         <Box sx={{ flexGrow: 1 }} />
 
-        <IconButton
-          onClick={handleProfileMenu}
-          aria-label="Menu do usuário"
-          sx={{ p: 0.5 }}
+        <Link
+          to="/meus-dados"
+          className="flex min-h-11 items-center gap-2 text-[13px] font-medium text-[#E8EBE6] no-underline transition-colors hover:text-[#A9B9A9]"
         >
-          <Avatar
-            sx={{
-              width: 34,
-              height: 34,
-              bgcolor: '#465448',
-              color: '#FFFFFF',
-            }}
-          >
-            <AccountCircleOutlined />
-          </Avatar>
-        </IconButton>
-
-        <Menu
-          anchorEl={anchorEl}
-          open={Boolean(anchorEl)}
-          onClose={handleClose}
-          anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-          transformOrigin={{ vertical: 'top', horizontal: 'right' }}
-        >
-          <Box sx={{ px: 2, py: 1 }}>
-            <Typography
-              variant="body2"
-              sx={{ fontWeight: 600 }}
-            >
-              {userName}
-            </Typography>
-          </Box>
-
-          <Divider />
-
-          {onProfileClick && (
-            <MenuItem onClick={handleProfileClick}>
-              Minha conta
-            </MenuItem>
-          )}
-
-          {onLogout && (
-            <MenuItem onClick={handleLogout}>
-              Sair
-            </MenuItem>
-          )}
-        </Menu>
+          <UserRound size={21} />
+          <span className="max-[1024px]:hidden">{user.authenticated ? user.name : "Minha Conta"}</span>
+        </Link>
       </Toolbar>
     </AppBar>
   )

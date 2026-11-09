@@ -1,4 +1,5 @@
 import { useCallback, useState } from 'react'
+import { useNavigate } from 'react-router'
 import { refresh } from '@/api'
 
 const publicRoutes = [
@@ -41,19 +42,23 @@ const rolePermissions: Record<string, string[]> = {
 }
 
 export interface IUser {
-  id: string
+  userId: string
+  customerId: string
   name: string
   email: string
   roles: string[]
+  authenticated: boolean
   accessToken: string
   refreshToken: string
 }
 
 const emptyUser: IUser = {
-  id: '',
+  userId: '',
+  customerId: '',
   name: '',
   email: '',
   roles: ['ROLE_CUSTOMER'],
+  authenticated: false,
   accessToken: '',
   refreshToken: '',
 }
@@ -67,6 +72,7 @@ function getStoredUser(): IUser {
     return {
       ...emptyUser,
       ...JSON.parse(auth),
+      authenticated: true
     }
   } catch {
     return emptyUser
@@ -76,6 +82,8 @@ function getStoredUser(): IUser {
 export function useAuth() {
   const [user, setUser] = useState<IUser>(getStoredUser)
 
+  const navigate = useNavigate()
+
   const saveSession = useCallback((session: IUser) => {
     localStorage.setItem('auth', JSON.stringify(session))
     setUser(session)
@@ -84,7 +92,8 @@ export function useAuth() {
   const logout = useCallback(() => {
     localStorage.removeItem('auth')
     setUser(emptyUser)
-  }, [])
+    navigate('/login')
+  }, [navigate])
 
   const hasPermission = useCallback(
     (resource: string) =>
