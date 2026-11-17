@@ -117,8 +117,8 @@ export default function ProductManagementDetails() {
     async function loadFormData() {
       try {
         const [categoriesResponse, brandsResponse] = await Promise.all([
-          api.get<CategoryPublicView[]>('/categories'),
-          api.get<BrandPublicView[]>('/brands'),
+          api.get<CategoryPublicView[]>('/categories/manager'),
+          api.get<BrandPublicView[]>('/brands/manager'),
         ])
 
         setCategories(categoriesResponse.data)
