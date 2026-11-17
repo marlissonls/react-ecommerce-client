@@ -55,7 +55,7 @@ function ShoppingCart() {
       return;
     }
   
-    navigate("/checkout");
+    navigate("/finalizar-pedido");
   };
 
   const handleConfirmCheckout = async () => {

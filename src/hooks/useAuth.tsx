@@ -14,7 +14,7 @@ const publicRoutes = [
 const customerRoutes = [
   'Customer',
   'ShoppingCart',
-  // 'Checkout',
+  'Checkout',
   // 'Orders',
 ]
 
