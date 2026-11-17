@@ -1,6 +1,7 @@
 import type { ProductPublicView, ProductPagePublicView, ProductManagerView, ProductImageView } from "./product";
 import type { CategoryPublicView, CategoryListPublicView } from "./category";
 import type { BrandPublicView, BrandListPublicView } from "./brand";
+import type { Cart, CartItem } from "./cart";
 
 export type {
   ProductPublicView,
@@ -10,5 +11,7 @@ export type {
   CategoryPublicView,
   CategoryListPublicView,
   BrandPublicView,
-  BrandListPublicView
+  BrandListPublicView,
+  Cart,
+  CartItem
 }

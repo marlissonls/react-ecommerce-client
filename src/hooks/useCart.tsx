@@ -3,25 +3,13 @@ import {
   useCallback,
   useContext,
   useState,
+  useRef,
   type ReactNode,
 } from "react";
 
 import api from "@/api";
 
-export type CartItem = {
-  productId: string;
-  productTitle: string;
-  unitPrice: number;
-  quantity: number;
-  totalPrice: number;
-};
-
-export type Cart = {
-  id: string;
-  customerId: string;
-  subTotalAmount: number;
-  items: CartItem[];
-};
+import type { Cart, CartItem } from "@/types"
 
 type CartContextData = {
   cart: Cart | null;
@@ -32,7 +20,7 @@ type CartContextData = {
   error: string | null;
   refreshCart: () => Promise<void>;
   addItem: (productId: string, quantity: number) => Promise<void>;
-  removeItem: (productId: string) => Promise<void>;
+  removeItems: (productId: string[]) => Promise<void>;
 };
 
 const CartContext = createContext<CartContextData | null>(null);
@@ -46,6 +34,8 @@ export function CartProvider({ children }: CartProviderProps) {
   const [loading, setLoading] = useState(false);
   const [mutating, setMutating] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const mutationLock = useRef(false);
 
   const refreshCart = useCallback(async () => {
     try {
@@ -64,39 +54,51 @@ export function CartProvider({ children }: CartProviderProps) {
 
   const addItem = useCallback(
     async (productId: string, quantity: number) => {
+      if (mutationLock.current) return;
+  
+      mutationLock.current = true;
+  
       try {
         setMutating(true);
         setError(null);
-
+  
         await api.post("/carts/items", {
           productId,
           quantity,
         });
-
+  
         await refreshCart();
       } catch {
         setError("Não foi possível adicionar o produto ao carrinho.");
         throw new Error("Adding cart item failed.");
       } finally {
+        mutationLock.current = false;
         setMutating(false);
       }
     },
     [refreshCart]
   );
 
-  const removeItem = useCallback(
-    async (productId: string) => {
+  const removeItems = useCallback(
+    async (productIds: string[]) => {
+      if (mutationLock.current) return;
+  
+      mutationLock.current = true;
+  
       try {
         setMutating(true);
         setError(null);
-
-        await api.delete(`/carts/items/product/${productId}`);
-
+  
+        await api.delete(`/carts/items`, {
+          data: { productIds },
+        });
+  
         await refreshCart();
       } catch {
         setError("Não foi possível remover o produto do carrinho.");
         throw new Error("Removing cart item failed.");
       } finally {
+        mutationLock.current = false;
         setMutating(false);
       }
     },
@@ -112,7 +114,7 @@ export function CartProvider({ children }: CartProviderProps) {
     error,
     refreshCart,
     addItem,
-    removeItem,
+    removeItems,
   };
 
   return (

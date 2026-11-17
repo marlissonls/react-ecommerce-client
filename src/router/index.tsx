@@ -20,6 +20,7 @@ import Register from '@/pages/auth/Register'
 import Product from '@/pages/Product'
 import Customer from '@/pages/Customer'
 import CustomerLayout from '@/layouts/CustomerLayout'
+import ShoppingCart from '@/pages/ShoppingCart'
   
 function ProtectedRoute() {
   const auth = useAuth()
@@ -139,7 +140,7 @@ export const router = createBrowserRouter([
       {
         element: <StoreLayout />,
         children: [
-          // { path: '/cart', element: <Cart /> },
+          { path: '/carrinho', element: <ShoppingCart /> },
           // { path: '/orders', element: <Orders /> },
         ],
       },

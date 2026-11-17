@@ -214,7 +214,7 @@ export default function Header({ variant = 'store' }: HeaderProps) {
           </Link>
 
           <Link
-            to="/cart"
+            to="/carrinho"
             onClick={closeMenu}
             className="flex min-h-11 items-center gap-2 text-[13px] font-medium text-[#E8EBE6] no-underline transition-colors hover:text-[#A9B9A9] max-[1024px]:[&>span:not(.header-cart-icon)]:hidden max-[640px]:min-h-10"
             aria-label="Carrinho"

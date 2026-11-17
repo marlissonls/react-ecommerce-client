@@ -13,13 +13,12 @@ const publicRoutes = [
 
 const customerRoutes = [
   'Customer',
-  // 'ShoppingCart',
+  'ShoppingCart',
   // 'Checkout',
   // 'Orders',
 ]
 
 const managerRoutes = [
-  'Customer', // Temporário
   'ProductsManagement',
   'ProductsManagementDetails',
   // 'CategoryManagement',
