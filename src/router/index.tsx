@@ -24,6 +24,8 @@ import ShoppingCart from '@/pages/customer/ShoppingCart'
 import Checkout from '@/pages/customer/Checkout'
 import OrderConfirmation from '@/pages/customer/OrderConfirmation'
 import MyOrders from '@/pages/customer/MyOrders'
+import BrandManagement from '@/pages/manager/BrandManagement'
+import CategoryManagement from '@/pages/manager/CategoryManagement'
   
 function ProtectedRoute() {
   const auth = useAuth()
@@ -199,6 +201,26 @@ export const router = createBrowserRouter([
               },
             ],
           },
+          {
+            path: 'marcas',
+            children: [
+              {
+                index: true,
+                element: <BrandManagement />,
+                handle: 'BrandManagement',
+              },
+            ]
+          },
+          {
+            path: 'categorias',
+            children: [
+              {
+                index: true,
+                element: <CategoryManagement />,
+                handle: 'CategoryManagement',
+              },
+            ]
+          }
         ],
       },
     ],

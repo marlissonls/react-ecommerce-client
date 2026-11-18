@@ -22,9 +22,9 @@ const customerRoutes = [
 const managerRoutes = [
   'ProductsManagement',
   'ProductsManagementDetails',
-  // 'CategoryManagement',
+  'CategoryManagement',
   // 'CategoryManagementDetails',
-  // 'BrandManagement',
+  'BrandManagement',
   // 'BrandManagementDetails'
 ]
 
