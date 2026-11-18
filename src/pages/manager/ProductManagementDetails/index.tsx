@@ -1,4 +1,5 @@
-import { useEffect, useState } from 'react'
+
+import { useEffect, useState, type FormEvent } from 'react'
 import { useNavigate, useParams } from 'react-router'
 import {
   Alert,
@@ -6,28 +7,28 @@ import {
   Button,
   Card,
   CardContent,
-  Checkbox,
-  Chip,
   CircularProgress,
-  FormControlLabel,
-  MenuItem,
   TextField,
   Typography,
 } from '@mui/material'
-import {
-  AddPhotoAlternateOutlined,
-  ArrowBack,
-  DeleteOutlined,
-  SaveOutlined,
-} from '@mui/icons-material'
+import { ArrowBack } from '@mui/icons-material'
 
 import api from '@/api'
+
 import type {
   ProductManagerView,
   ProductImageView,
   CategoryPublicView,
   BrandPublicView,
 } from '@/types'
+
+import ProductGeneralForm from './components/ProductGeneralForm'
+import ProductIdentificationForm from './components/ProductIdentificationForm'
+import ProductCommercialForm from './components/ProductCommercialForm'
+import ProductImagesForm from './components/ProductImagesForm'
+import ProductFormActions from './components/ProductFormActions'
+
+// Types
 
 type ProductForm = {
   title: string
@@ -39,11 +40,22 @@ type ProductForm = {
   sku: string
   categoryId: string
   brandId: string
+  initialStock: string
+  minimumStock: string
 }
 
-type StockForm = {
-  availableQuantity: string
-  minimumQuantity: string
+type ProductCreateRequest = {
+  title: string
+  description: string
+  price: number
+  salePrice: number | null
+  costPrice: number | null
+  barcode: string | null
+  sku: string | null
+  categoryId: string
+  brandId: string
+  initialStock: number
+  minimumStock: number
 }
 
 type CloudinaryUploadResponse = {
@@ -58,6 +70,8 @@ type UploadedImage = {
   position: number
 }
 
+// Constants
+
 const CLOUDINARY_CLOUD_NAME = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME
 const CLOUDINARY_UPLOAD_PRESET = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET
 
@@ -71,41 +85,49 @@ const INITIAL_FORM: ProductForm = {
   sku: '',
   categoryId: '',
   brandId: '',
+  initialStock: '',
+  minimumStock: '',
 }
 
-const INITIAL_STOCK: StockForm = {
-  availableQuantity: '1',
-  minimumQuantity: '1',
-}
+// Page
 
 export default function ProductManagementDetails() {
   const { id } = useParams()
   const navigate = useNavigate()
+
   const isEditing = Boolean(id)
 
+  // Form state
+
   const [form, setForm] = useState<ProductForm>(INITIAL_FORM)
-  const [stock, setStock] = useState<StockForm>(INITIAL_STOCK)
 
   const [product, setProduct] = useState<ProductManagerView | null>(null)
   const [categories, setCategories] = useState<CategoryPublicView[]>([])
   const [brands, setBrands] = useState<BrandPublicView[]>([])
+
+  // Images state
 
   const [images, setImages] = useState<ProductImageView[]>([])
   const [files, setFiles] = useState<File[]>([])
   const [previews, setPreviews] = useState<string[]>([])
   const [mainIndex, setMainIndex] = useState(0)
 
+  // Submission state
+
   const [createdProductId, setCreatedProductId] = useState<string | null>(null)
-  const [stockCreated, setStockCreated] = useState(false)
   const [pendingImages, setPendingImages] = useState<UploadedImage[] | null>(null)
 
   const [loading, setLoading] = useState(isEditing)
   const [saving, setSaving] = useState(false)
+
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
 
+  // Effects
+
   useEffect(() => {
     const urls = files.map((file) => URL.createObjectURL(file))
+
     setPreviews(urls)
 
     return () => {
@@ -144,6 +166,8 @@ export default function ProductManagementDetails() {
             sku: data.sku ?? '',
             categoryId: data.categoryId,
             brandId: data.brandId,
+            initialStock: '',
+            minimumStock: '',
           })
         }
       } catch (error) {
@@ -157,24 +181,25 @@ export default function ProductManagementDetails() {
     loadFormData()
   }, [id])
 
+  // Form handlers
+
   function updateForm<K extends keyof ProductForm>(
     field: K,
     value: ProductForm[K]
   ) {
-    setForm((current) => ({ ...current, [field]: value }))
+    setForm((current) => ({
+      ...current,
+      [field]: value,
+    }))
   }
 
-  function updateStock<K extends keyof StockForm>(
-    field: K,
-    value: StockForm[K]
-  ) {
-    setStock((current) => ({ ...current, [field]: value }))
-  }
+  // Image handlers
 
   function handleFilesChange(fileList: FileList | null) {
     if (!fileList) return
 
     const selectedFiles = Array.from(fileList)
+
     const validFiles = selectedFiles.filter((file) =>
       ['image/jpeg', 'image/png', 'image/webp'].includes(file.type)
     )
@@ -255,7 +280,9 @@ export default function ProductManagementDetails() {
     }))
   }
 
-  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+  // Submission
+
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
 
     setSaving(true)
@@ -263,7 +290,7 @@ export default function ProductManagementDetails() {
     setSuccess('')
 
     try {
-      const payload = {
+      const productData = {
         title: form.title.trim(),
         description: form.description.trim(),
         price: Number(form.price),
@@ -275,14 +302,23 @@ export default function ProductManagementDetails() {
         brandId: form.brandId,
       }
 
+      const createPayload: ProductCreateRequest = {
+        ...productData,
+        initialStock:
+          form.initialStock === '' ? 0 : Number(form.initialStock),
+        minimumStock:
+          form.minimumStock === '' ? 5 : Number(form.minimumStock),
+      }
+
       let productId = id ?? createdProductId
       let productSlug = product?.slug ?? ''
 
-      // 1. Criação ou atualização do produto
+      // 1. Create or update product
+
       if (!productId) {
         const response = await api.post<ProductManagerView>(
           '/products/manager',
-          payload
+          createPayload
         )
 
         productId = response.data.id
@@ -291,21 +327,14 @@ export default function ProductManagementDetails() {
         setCreatedProductId(productId)
         setProduct(response.data)
       } else {
-        await api.put(`/products/manager/${productId}`, payload)
+        await api.put(
+          `/products/manager/${productId}`,
+          productData
+        )
       }
 
-      // 2. Cadastro do estoque inicial
-      if (!isEditing && !stockCreated) {
-        await api.post('/stocks', {
-          productId,
-          availableQuantity: Number(stock.availableQuantity),
-          minimumQuantity: Number(stock.minimumQuantity),
-        })
+      // 2. Upload and register images
 
-        setStockCreated(true)
-      }
-
-      // 3. Upload e cadastro das imagens
       if (files.length > 0 || pendingImages) {
         let uploadedImages = pendingImages
 
@@ -319,7 +348,10 @@ export default function ProductManagementDetails() {
           setPendingImages(uploadedImages)
         }
 
-        await api.post(`/products/manager/${productId}/images`, uploadedImages)
+        await api.post(
+          `/products/manager/${productId}/images`,
+          uploadedImages
+        )
 
         setPendingImages(null)
         setFiles([])
@@ -329,10 +361,13 @@ export default function ProductManagementDetails() {
       setSuccess('Produto salvo com sucesso.')
 
       if (!isEditing) {
-        navigate(`/painel/produtos/${productId}`, { replace: true })
+        navigate(`/painel/produtos/${productId}`, {
+          replace: true,
+        })
       }
     } catch (error) {
       console.error('Erro ao salvar produto', error)
+
       setError(
         error instanceof Error
           ? error.message
@@ -343,6 +378,8 @@ export default function ProductManagementDetails() {
     }
   }
 
+  // Loading
+
   if (loading) {
     return (
       <Box className="flex justify-center py-16">
@@ -350,6 +387,8 @@ export default function ProductManagementDetails() {
       </Box>
     )
   }
+
+  // Render
 
   return (
     <Box>
@@ -389,157 +428,33 @@ export default function ProductManagementDetails() {
 
       <form onSubmit={handleSubmit}>
         <Box className="flex flex-col gap-5">
-          <Card variant="outlined">
-            <CardContent className="flex flex-col gap-4">
-              <Typography variant="h6" sx={{ fontWeight: 600 }}>
-                Informações gerais
-              </Typography>
 
-              <TextField
-                label="Nome do produto"
-                value={form.title}
-                onChange={(event) => updateForm('title', event.target.value)}
-                required
-                fullWidth
-              />
+          <ProductGeneralForm
+            title={form.title}
+            description={form.description}
+            product={product}
+            isEditing={isEditing}
+            onChange={updateForm}
+          />
 
-              <TextField
-                label="Descrição"
-                value={form.description}
-                onChange={(event) =>
-                  updateForm('description', event.target.value)
-                }
-                required
-                multiline
-                minRows={4}
-                fullWidth
-              />
+          <ProductIdentificationForm
+            sku={form.sku}
+            barcode={form.barcode}
+            categoryId={form.categoryId}
+            brandId={form.brandId}
+            categories={categories}
+            brands={brands}
+            onChange={updateForm}
+          />
 
-              {isEditing && (
-                <Box className="flex flex-wrap gap-2">
-                  <Chip label={`Slug: ${product?.slug}`} variant="outlined" />
-                  <Chip
-                    label={`Avaliação: ${product?.rating ?? '—'}`}
-                    variant="outlined"
-                  />
-                  <Chip
-                    label={`${product?.ratingCount ?? 0} avaliações`}
-                    variant="outlined"
-                  />
-                </Box>
-              )}
-            </CardContent>
-          </Card>
+          <ProductCommercialForm
+            price={form.price}
+            salePrice={form.salePrice}
+            costPrice={form.costPrice}
+            onChange={updateForm}
+          />
 
-          <Card variant="outlined">
-            <CardContent className="flex flex-col gap-4">
-              <Typography variant="h6" sx={{ fontWeight: 600 }}>
-                Identificação e classificação
-              </Typography>
-
-              <Box className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                <TextField
-                  label="SKU"
-                  value={form.sku}
-                  onChange={(event) => updateForm('sku', event.target.value)}
-                  slotProps={{ htmlInput: { maxLength: 100 } }}
-                  fullWidth
-                />
-
-                <TextField
-                  label="Código de barras"
-                  value={form.barcode}
-                  onChange={(event) =>
-                    updateForm('barcode', event.target.value)
-                  }
-                  slotProps={{ htmlInput: { maxLength: 50 } }}
-                  fullWidth
-                />
-
-                <TextField
-                  select
-                  label="Categoria"
-                  value={form.categoryId}
-                  onChange={(event) =>
-                    updateForm('categoryId', event.target.value)
-                  }
-                  required
-                  fullWidth
-                >
-                  {categories.map((category) => (
-                    <MenuItem key={category.id} value={category.id}>
-                      {category.title}
-                    </MenuItem>
-                  ))}
-                </TextField>
-
-                <TextField
-                  select
-                  label="Marca"
-                  value={form.brandId}
-                  onChange={(event) =>
-                    updateForm('brandId', event.target.value)
-                  }
-                  required
-                  fullWidth
-                >
-                  {brands.map((brand) => (
-                    <MenuItem key={brand.id} value={brand.id}>
-                      {brand.title}
-                    </MenuItem>
-                  ))}
-                </TextField>
-              </Box>
-            </CardContent>
-          </Card>
-
-          <Card variant="outlined">
-            <CardContent className="flex flex-col gap-4">
-              <Typography variant="h6" sx={{ fontWeight: 600 }}>
-                Informações comerciais
-              </Typography>
-
-              <Box className="grid grid-cols-1 gap-4 md:grid-cols-3">
-                <TextField
-                  label="Preço de venda"
-                  type="number"
-                  value={form.price}
-                  onChange={(event) => updateForm('price', event.target.value)}
-                  slotProps={{
-                    htmlInput: { min: 0.01, step: 0.01 },
-                  }}
-                  required
-                  fullWidth
-                />
-
-                <TextField
-                  label="Preço promocional"
-                  type="number"
-                  value={form.salePrice}
-                  onChange={(event) =>
-                    updateForm('salePrice', event.target.value)
-                  }
-                  slotProps={{
-                    htmlInput: { min: 0, step: 0.01 },
-                  }}
-                  fullWidth
-                />
-
-                <TextField
-                  label="Preço de custo"
-                  type="number"
-                  value={form.costPrice}
-                  onChange={(event) =>
-                    updateForm('costPrice', event.target.value)
-                  }
-                  slotProps={{
-                    htmlInput: { min: 0, step: 0.01 },
-                  }}
-                  fullWidth
-                />
-              </Box>
-            </CardContent>
-          </Card>
+          {/* Stock */}
 
           <Card variant="outlined">
             <CardContent className="flex flex-col gap-4">
@@ -549,38 +464,36 @@ export default function ProductManagementDetails() {
 
               {isEditing ? (
                 <Alert severity="info">
-                  Estoque atual: {product?.stock ?? 0} unidades · Reservado:{' '}
-                  {product?.reservedStock ?? 0} · Mínimo:{' '}
-                  {product?.minimumStock ?? 0}. Alterações são feitas na página
-                  de estoque.
+                  Estoque atual: {product?.stock ?? 0} unidades ·
+                  Reservado: {product?.reservedStock ?? 0} ·
+                  Mínimo: {product?.minimumStock ?? 0}. Alterações são
+                  feitas na página de estoque.
                 </Alert>
               ) : (
                 <Box className="grid grid-cols-1 gap-4 md:grid-cols-2">
                   <TextField
                     label="Quantidade inicial"
                     type="number"
-                    value={stock.availableQuantity}
+                    value={form.initialStock}
                     onChange={(event) =>
-                      updateStock('availableQuantity', event.target.value)
+                      updateForm('initialStock', event.target.value)
                     }
                     slotProps={{
-                      htmlInput: { min: 1, step: 1 },
+                      htmlInput: { min: 0, step: 1 },
                     }}
-                    required
                     fullWidth
                   />
 
                   <TextField
                     label="Estoque mínimo"
                     type="number"
-                    value={stock.minimumQuantity}
+                    value={form.minimumStock}
                     onChange={(event) =>
-                      updateStock('minimumQuantity', event.target.value)
+                      updateForm('minimumStock', event.target.value)
                     }
                     slotProps={{
-                      htmlInput: { min: 1, step: 1 },
+                      htmlInput: { min: 0, step: 1 },
                     }}
-                    required
                     fullWidth
                   />
                 </Box>
@@ -588,154 +501,29 @@ export default function ProductManagementDetails() {
             </CardContent>
           </Card>
 
-          <Card variant="outlined">
-            <CardContent className="flex flex-col gap-4">
-              <Box>
-                <Typography variant="h6" sx={{ fontWeight: 600 }}>
-                  Imagens do produto
-                </Typography>
-
-                <Typography variant="body2" color="text.secondary">
-                  Adicione imagens JPG, PNG ou WEBP e escolha a imagem principal.
-                </Typography>
-              </Box>
-
-              {images.length > 0 && (
-                <Box className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-                  {images.map((image) => (
-                    <Box
-                      key={image.publicId}
-                      className="relative overflow-hidden rounded-lg border border-[#E2E3DD]"
-                    >
-                      <Box
-                        component="img"
-                        src={image.url}
-                        alt="Imagem do produto"
-                        className="h-36 w-full object-cover"
-                      />
-
-                      {image.main && (
-                        <Chip
-                          label="Principal"
-                          size="small"
-                          color="success"
-                          className="absolute left-2 top-2"
-                        />
-                      )}
-
-                      <Button
-                        color="error"
-                        size="small"
-                        fullWidth
-                        startIcon={<DeleteOutlined />}
-                        onClick={() => removeExistingImage(image)}
-                      >
-                        Remover
-                      </Button>
-                    </Box>
-                  ))}
-                </Box>
-              )}
-
-              <Button
-                component="label"
-                variant="outlined"
-                startIcon={<AddPhotoAlternateOutlined />}
-                sx={{ alignSelf: 'flex-start' }}
-              >
-                Adicionar imagens
-                <input
-                  hidden
-                  type="file"
-                  accept="image/jpeg,image/png,image/webp"
-                  multiple
-                  onChange={(event) => {
-                    handleFilesChange(event.target.files)
-                    event.target.value = ''
-                  }}
-                />
-              </Button>
-
-              {previews.length > 0 && (
-                <Box className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-                  {previews.map((preview, index) => (
-                    <Box
-                      key={`${preview}-${index}`}
-                      className="relative overflow-hidden rounded-lg border border-[#E2E3DD]"
-                    >
-                      <Box
-                        component="img"
-                        src={preview}
-                        alt={`Nova imagem ${index + 1}`}
-                        className="h-36 w-full object-cover"
-                      />
-
-                      <Box className="flex items-center justify-between px-2">
-                        <FormControlLabel
-                          control={
-                            <Checkbox
-                              size="small"
-                              checked={mainIndex === index}
-                              onChange={() => setMainIndex(index)}
-                            />
-                          }
-                          label={
-                            <Typography variant="caption">
-                              Principal
-                            </Typography>
-                          }
-                        />
-
-                        <Button
-                          color="error"
-                          size="small"
-                          onClick={() => removeFile(index)}
-                        >
-                          <DeleteOutlined fontSize="small" />
-                        </Button>
-                      </Box>
-                    </Box>
-                  ))}
-                </Box>
-              )}
-            </CardContent>
-          </Card>
+          <ProductImagesForm
+            images={images}
+            previews={previews}
+            mainIndex={mainIndex}
+            onFilesChange={handleFilesChange}
+            onRemoveExisting={removeExistingImage}
+            onRemoveFile={removeFile}
+            onMainChange={setMainIndex}
+          />
 
           {isEditing && product && (
             <Typography variant="caption" color="text.secondary">
               Criado em: {new Date(product.createdAt).toLocaleString('pt-BR')}
               {' · '}
-              Atualizado em:{' '}
-              {new Date(product.updatedAt).toLocaleString('pt-BR')}
+              Atualizado em: {new Date(product.updatedAt).toLocaleString('pt-BR')}
             </Typography>
           )}
 
-          <Box className="flex justify-end gap-3 pb-6">
-            <Button
-              variant="outlined"
-              color="inherit"
-              onClick={() => navigate('/painel/produtos')}
-              disabled={saving}
-            >
-              Cancelar
-            </Button>
+          <ProductFormActions
+            saving={saving}
+            onCancel={() => navigate('/painel/produtos')}
+          />
 
-            <Button
-              type="submit"
-              variant="contained"
-              startIcon={
-                saving ? <CircularProgress size={18} color="inherit" /> : <SaveOutlined />
-              }
-              disabled={saving}
-              sx={{
-                bgcolor: '#34483A',
-                '&:hover': { bgcolor: '#202B24' },
-                textTransform: 'none',
-              }}
-            >
-              {saving ? 'Salvando...' : 'Salvar produto'}
-            </Button>
-          </Box>
         </Box>
       </form>
     </Box>

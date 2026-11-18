@@ -1,20 +1,20 @@
 import type { PageResponse } from "./pagination"
 
 export type ProductPublicView = {
-  id: string;
-  title: string;
-  slug: string;
-  description: string;
-  price: number;
-  salePrice: number | null;
-  stock: number;
-  featured: boolean;
+  id: string
+  title: string
+  slug: string
+  description: string
+  price: number
+  salePrice: number | null
+  stock: number
+  featured: boolean
   image: ProductImageView | null
   images?: ProductImageView[]
-  rating: number | null;
-  ratingCount: number;
-  categoryId: string;
-  brandId: string;
+  rating: number | null
+  ratingCount: number
+  categoryId: string
+  brandId: string
 }
 
 export type ProductImageView = {

@@ -1,6 +1,6 @@
 export type PageResponse<T> = {
-  items: T[];
-  page: number;
-  size: number;
-  total: number;
-};
+  items: T[]
+  page: number
+  size: number
+  total: number
+}
