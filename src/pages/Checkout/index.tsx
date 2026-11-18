@@ -40,9 +40,13 @@ function Checkout() {
       setCreatingOrder(true);
       setError(null);
 
-      await api.post("/checkout");
+      const response = await api.post("/checkout");
 
-      // A página de confirmação do pedido será adicionada posteriormente.
+      navigate("/pedido-confirmado", {
+        state: {
+          order: response.data,
+        }
+      })
     } catch {
       setError("Não foi possível criar seu pedido. Tente novamente.");
     } finally {

@@ -22,6 +22,7 @@ import Customer from '@/pages/Customer'
 import CustomerLayout from '@/layouts/CustomerLayout'
 import ShoppingCart from '@/pages/ShoppingCart'
 import Checkout from '@/pages/Checkout'
+import OrderConfirmation from '@/pages/OrderConfirmation'
   
 function ProtectedRoute() {
   const auth = useAuth()
@@ -141,13 +142,21 @@ export const router = createBrowserRouter([
       {
         element: <StoreLayout />,
         children: [
-          { path: '/carrinho', element: <ShoppingCart /> },
+          {
+            path: '/carrinho',
+            element: <ShoppingCart />,
+            handle: 'ShoppingCart'
+          },
           {
             path: '/finalizar-pedido',
             element: <Checkout />,
             handle: 'Checkout'
           },
-          // { path: '/orders', element: <Orders /> },
+          {
+            path: '/pedido-confirmado',
+            element: <OrderConfirmation />,
+            handle: 'OrderConfirmation'
+          },
         ],
       },
       {

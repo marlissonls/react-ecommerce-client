@@ -15,6 +15,7 @@ const customerRoutes = [
   'Customer',
   'ShoppingCart',
   'Checkout',
+  'OrderConfirmation',
   // 'Orders',
 ]
 
