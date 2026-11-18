@@ -2,7 +2,7 @@ import { Outlet } from 'react-router'
 
 import Header from '@/components/Header'
 
-import CustomerSidebar from '@/pages/Customer/components/CustomerSidebar'
+import CustomerSidebar from '@/pages/customer/Customer/components/CustomerSidebar'
 
 export default function CustomerLayout() {
   return (
