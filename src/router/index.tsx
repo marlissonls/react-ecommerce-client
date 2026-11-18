@@ -23,6 +23,7 @@ import CustomerLayout from '@/layouts/CustomerLayout'
 import ShoppingCart from '@/pages/customer/ShoppingCart'
 import Checkout from '@/pages/customer/Checkout'
 import OrderConfirmation from '@/pages/customer/OrderConfirmation'
+import MyOrders from '@/pages/customer/MyOrders'
   
 function ProtectedRoute() {
   const auth = useAuth()
@@ -162,6 +163,11 @@ export const router = createBrowserRouter([
       {
         element: <CustomerLayout />,
         children: [
+          {
+            path: 'meus-pedidos',
+            element: <MyOrders />,
+            handle: 'MyOrders',
+          },
           {
             path: 'meus-dados',
             element: <Customer />,

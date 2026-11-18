@@ -1,20 +1,24 @@
+import type { PageResponse } from "./pagination"
+
 export type OrderItem = {
-  productId: string;
-  productTitle: string;
-  productImage: string;
-  price: number;
-  quantity: number;
-  totalPrice: number;
-};
+  productId: string
+  productTitle: string
+  productImage: string
+  price: number
+  quantity: number
+  totalPrice: number
+}
 
 export type Order = {
-  id: string;
-  customerId: string;
-  subTotalAmount: number;
-  discountAmount: number;
-  shippingAmount: number;
-  totalAmount: number;
-  status: string;
-  createdAt: string;
-  items: OrderItem[];
-};
+  id: string
+  customerId: string
+  subTotalAmount: number
+  discountAmount: number
+  shippingAmount: number
+  totalAmount: number
+  status: string
+  createdAt: string
+  items: OrderItem[]
+}
+
+export type OrderPageView = PageResponse<Order>

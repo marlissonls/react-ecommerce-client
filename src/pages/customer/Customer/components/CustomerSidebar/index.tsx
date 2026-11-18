@@ -14,6 +14,7 @@ import {
   AccountCircleOutlined,
   StorefrontOutlined,
   DashboardOutlined,
+  ShoppingBagOutlined
 } from '@mui/icons-material'
 
 import { NavLink } from 'react-router'
@@ -59,6 +60,48 @@ export default function CustomerSidebar({
       }}
     >
       <List sx={{ px: 1.5, py: 2, flex: 1 }}>
+      <ListItemButton
+          component={NavLink}
+          to="/meus-pedidos"
+          end
+          onClick={handleNavigation}
+          sx={{
+            minHeight: 44,
+            mb: 0.5,
+            px: 1.5,
+            borderRadius: 1.5,
+            color: '#D8DED7',
+            '&.active': {
+              bgcolor: '#465448',
+              color: '#FFFFFF',
+            },
+            '&:hover': {
+              bgcolor: '#3A493D',
+            },
+          }}
+        >
+          <ListItemIcon
+            sx={{
+              minWidth: 40,
+              color: 'inherit',
+            }}
+          >
+            <ShoppingBagOutlined />
+          </ListItemIcon>
+
+          <ListItemText
+            primary="Meus pedidos"
+            slotProps={{
+              primary: {
+                sx: {
+                  fontSize: 14,
+                  fontWeight: 500,
+                },
+              },
+            }}
+          />
+        </ListItemButton>
+
         <ListItemButton
           component={NavLink}
           to="/meus-dados"

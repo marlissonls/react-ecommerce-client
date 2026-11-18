@@ -16,7 +16,7 @@ const customerRoutes = [
   'ShoppingCart',
   'Checkout',
   'OrderConfirmation',
-  // 'Orders',
+  'MyOrders',
 ]
 
 const managerRoutes = [
