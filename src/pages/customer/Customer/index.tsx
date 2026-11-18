@@ -3,13 +3,11 @@ import { useNavigate } from 'react-router'
 import {
   Alert,
   Box,
-  Button,
   Card,
   CardContent,
   CircularProgress,
   Typography,
 } from '@mui/material'
-import { ArrowBack } from '@mui/icons-material'
 
 import api from '@/api'
 import { useAuth } from '@/hooks/useAuth'
@@ -17,6 +15,7 @@ import { useAuth } from '@/hooks/useAuth'
 import CustomerForm, {
   type CustomerFormData,
 } from './components/CustomerForm'
+import CurstomerHeader from './components/CustomerHeader'
 
 type Customer = CustomerFormData & {
   id: string
@@ -96,25 +95,7 @@ export default function Customer() {
 
   return (
     <Box className="min-w-0 flex-1 p-6">
-      <Box className="mb-6 flex items-center gap-3">
-        <Button
-          color="inherit"
-          startIcon={<ArrowBack />}
-          onClick={() => navigate('/')}
-        >
-          Voltar
-        </Button>
-
-        <Box>
-          <Typography variant="h5" sx={{ fontWeight: 700 }}>
-            Meus dados
-          </Typography>
-
-          <Typography variant="body2" color="text.secondary">
-            Gerencie suas informações pessoais
-          </Typography>
-        </Box>
-      </Box>
+      <CurstomerHeader />
 
       {error && (
         <Alert severity="error" sx={{ mb: 3 }}>
