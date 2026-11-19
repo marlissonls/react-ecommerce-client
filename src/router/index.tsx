@@ -50,7 +50,11 @@ function ProtectedRoute() {
 
   const resource = matches.at(-1)?.handle as string | undefined
 
-  if (resource && !auth.hasPermission(resource)) {
+  if (!resource) {
+    return <Navigate to="/" replace />
+  }
+  
+  if (!auth.hasPermission(resource)) {
     return <Navigate to="/" replace />
   }
 
