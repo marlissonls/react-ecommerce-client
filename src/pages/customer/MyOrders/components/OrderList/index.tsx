@@ -5,11 +5,22 @@ import OrdersEmptyState from "../OrdersEmptyState"
 
 type OrderListProps = {
   orders: Order[]
+  activeFilter: string
+  onClearFilter: () => void
 }
 
-function OrderList({ orders }: OrderListProps) {
+function OrderList({ 
+  orders,
+  activeFilter,
+  onClearFilter
+}: OrderListProps) {
   if (orders.length === 0) {
-    return <OrdersEmptyState />
+    return (
+      <OrdersEmptyState
+        activeFilter={activeFilter}
+        onClearFilter={onClearFilter}
+      />
+    )
   }
 
   return (

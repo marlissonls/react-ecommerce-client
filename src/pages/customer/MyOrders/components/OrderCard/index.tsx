@@ -1,87 +1,141 @@
-import { Link } from "react-router"
-import { ChevronRight, Package } from "lucide-react"
 
-import type { Order } from "@/types"
-import { formatPrice } from "@/utils/formatPrice"
+import { Link } from 'react-router'
+import {
+  Box,
+  Chip,
+  Typography,
+} from '@mui/material'
+
+import { ChevronRight, Package } from 'lucide-react'
+
+import type { Order } from '@/types'
+import { formatPrice } from '@/utils/formatPrice'
+import { orderStatusStyles, statusLabels } from '@/utils/orderStatus'
 
 type OrderCardProps = {
   order: Order
 }
 
-const statusStyles: Record<string, string> = {
-  PENDING: "bg-amber-50 text-amber-700",
-  CONFIRMED: "bg-blue-50 text-blue-700",
-  COMPLETED: "bg-green-50 text-green-700",
-  CANCELLED: "bg-red-50 text-red-700",
-}
-
-const statusLabels: Record<string, string> = {
-  PENDING_PAYMENT: "Aguardando pagamento",
-  PAYMENT_PROCESSING: "Pagamento em processamento",
-  PAID: "Pagamento aprovado",
-  PICKING: "Separando produtos",
-  PACKING: "Em embalagem",
-  READY_FOR_SHIPMENT: "Pronto para envio",
-  SHIPPED: "Enviado",
-  OUT_FOR_DELIVERY: "Saiu para entrega",
-  DELIVERED: "Entregue",
-  CANCELLED: "Cancelado",
-}
-
 function OrderCard({ order }: OrderCardProps) {
-  const statusStyle =
-    statusStyles[order.status] ?? "bg-gray-100 text-gray-600"
+  const statusStyle = orderStatusStyles[order.status] ?? {
+    bg: '#F3F4F6',
+    color: '#4B5563',
+  }
 
   const statusLabel = statusLabels[order.status] ?? order.status
 
-  const createdAt = new Date(order.createdAt).toLocaleDateString("pt-BR", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
+  const createdAt = new Date(order.createdAt).toLocaleDateString('pt-BR', {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric',
   })
 
   return (
-    <article className="flex flex-col gap-6 rounded-xl border border-gray-200 bg-white p-5 sm:flex-row sm:items-center sm:justify-between sm:px-6">
-      <div className="flex min-w-0 items-start gap-4">
-        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-gray-100 text-gray-500">
-          <Package size={23} />
-        </div>
-
-        <div className="min-w-0">
-          <p className="text-sm font-semibold text-gray-900">
-            Pedido #{order.id.slice(0, 8).toUpperCase()}
-          </p>
-
-          <div className="flex gap-1">
-            <p className="mt-1 text-xs text-gray-500">
-              Comprado em {createdAt} |
-            </p>
-
-            <p className="mt-1 text-xs text-gray-500">
-              <span>
-                {formatPrice(order.totalAmount)}
-              </span>
-            </p>
-          </div>
-        </div>
-      </div>
-
-      <div className="flex shrink-0 items-center justify-between gap-6 border-t border-gray-100 pt-4 sm:border-0 sm:pt-0">
-        <span
-          className={`rounded-full px-3 py-1.5 text-xs font-semibold ${statusStyle}`}
+    <Box
+      component="article"
+      sx={{
+        display: 'flex',
+        flexDirection: { xs: 'column', sm: 'row' },
+        alignItems: { sm: 'center' },
+        justifyContent: 'space-between',
+        gap: 3,
+        p: 2.5,
+        px: { sm: 3 },
+        bgcolor: '#FFFFFF',
+        border: '1px solid #E5E7EB',
+        borderRadius: 3,
+      }}
+    >
+      <Box
+        sx={{
+          display: 'flex',
+          alignItems: 'flex-start',
+          gap: 2,
+          minWidth: 0,
+        }}
+      >
+        <Box
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            width: 48,
+            height: 48,
+            flexShrink: 0,
+            bgcolor: '#F3F4F6',
+            color: '#6B7280',
+            borderRadius: 2,
+          }}
         >
-          {statusLabel}
-        </span>
+          <Package size={23} />
+        </Box>
 
-        <Link
+        <Box sx={{ minWidth: 0 }}>
+          <Typography
+            variant="body2"
+            sx={{ fontWeight: 600, color: '#111827' }}
+          >
+            Pedido #{order.id.slice(0, 8).toUpperCase()}
+          </Typography>
+
+          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, mt: 0.5 }}>
+            <Typography variant="caption" color="text.secondary">
+              Comprado em {createdAt} |
+            </Typography>
+
+            <Typography variant="caption" color="text.secondary">
+              {formatPrice(order.totalAmount)}
+            </Typography>
+          </Box>
+        </Box>
+      </Box>
+
+      <Box
+        sx={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          gap: 3,
+          pt: { xs: 2, sm: 0 },
+          borderTop: { xs: '1px solid #F3F4F6', sm: 'none' },
+          flexShrink: 0,
+        }}
+      >
+        <Chip
+          size="small"
+          label={statusLabel}
+          sx={{
+            bgcolor: statusStyle.bg,
+            color: statusStyle.color,
+            fontWeight: 600,
+            fontSize: '0.75rem',
+            borderRadius: 5,
+          }}
+        />
+
+        <Box
+          component={Link}
           to={`/meus-pedidos/${order.id}`}
-          className="inline-flex items-center gap-1 text-sm font-medium text-gray-700 transition-colors hover:text-black"
+          sx={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 0.5,
+            color: '#374151',
+            fontSize: '0.875rem',
+            fontWeight: 500,
+            textDecoration: 'none',
+            whiteSpace: 'nowrap',
+            transition: 'color 150ms',
+            '&:hover': {
+              color: '#000000',
+            },
+          }}
         >
           Ver detalhes
           <ChevronRight size={16} />
-        </Link>
-      </div>
-    </article>
+        </Box>
+      </Box>
+    </Box>
   )
 }
 

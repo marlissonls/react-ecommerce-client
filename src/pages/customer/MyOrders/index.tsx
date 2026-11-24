@@ -10,15 +10,15 @@ import api from "@/api";
 import type { Order, OrderPageView } from "@/types";
 
 import OrdersHeader from "./components/OrdersHeader";
-// import OrderFilters from "./components/OrderFilters";
+import OrderFilters from "./components/OrderFilters";
 import OrderList from "./components/OrderList";
 import OrdersPagination from "./components/OrdersPagination";
 
-const PAGE_SIZE = 12
+const PAGE_SIZE = 6
 
 function MyOrders() {
   const [orders, setOrders] = useState<Order[]>([]);
-  // const [activeFilter, setActiveFilter] = useState("ALL");
+  const [activeFilter, setActiveFilter] = useState("ALL");
   const [currentPage, setCurrentPage] = useState(0);
 
   const [total, setTotal] = useState(0)
@@ -31,19 +31,18 @@ function MyOrders() {
         setLoading(true);
         setError(null);
 
-        // const params: Record<string, string | number> = {
-        //   page: currentPage,
-        // };
+        const params: Record<string, string | number> = {
+          page: currentPage,
+          size: PAGE_SIZE
+        };
 
-        // if (activeFilter !== "ALL") {
-        //   params.status = activeFilter;
-        // }
+        if (activeFilter !== "ALL") {
+          params.status = activeFilter;
+        }
 
-        // const response = await api.get<OrderPageView>("/orders", {
-        //   params,
-        // });
-
-        const response = await api.get<OrderPageView>("/orders");
+        const response = await api.get<OrderPageView>("/orders", {
+          params,
+        });
 
         setOrders(response.data.items);
         setTotal(response.data.total)
@@ -55,13 +54,12 @@ function MyOrders() {
     };
 
     fetchOrders();
-  }, [currentPage]);
-  // }, [activeFilter, currentPage]);
+  }, [activeFilter, currentPage]);
 
-  // const handleFilterChange = (filter: string) => {
-  //   setActiveFilter(filter);
-  //   setCurrentPage(0);
-  // };
+  const handleFilterChange = (filter: string) => {
+    setActiveFilter(filter);
+    setCurrentPage(0);
+  };
 
   const totalPages = Math.ceil(total / PAGE_SIZE)
 
@@ -69,10 +67,10 @@ function MyOrders() {
     <Box className="min-w-0 flex-1 p-6">
       <OrdersHeader />
 
-      {/* <OrderFilters
+      <OrderFilters
         activeFilter={activeFilter}
         onFilterChange={handleFilterChange}
-      /> */}
+      />
 
       {error && (
         <Alert severity="error" sx={{ mb: 3 }}>
@@ -86,7 +84,11 @@ function MyOrders() {
         </Box>
       ) : (
         <>
-          <OrderList orders={orders} />
+          <OrderList
+            orders={orders}
+            activeFilter={activeFilter}
+            onClearFilter={() => handleFilterChange("ALL")}
+          />
 
           <OrdersPagination
             currentPage={currentPage}
