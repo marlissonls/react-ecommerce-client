@@ -25,7 +25,9 @@ const managerRoutes = [
   'CategoryManagement',
   // 'CategoryManagementDetails',
   'BrandManagement',
-  // 'BrandManagementDetails'
+  // 'BrandManagementDetails',
+  'OrderManagement',
+  // 'OrderManagementDetails',
 ]
 
 const adminRoutes = [

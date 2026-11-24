@@ -26,6 +26,7 @@ import OrderConfirmation from '@/pages/customer/OrderConfirmation'
 import MyOrders from '@/pages/customer/MyOrders'
 import BrandManagement from '@/pages/manager/BrandManagement'
 import CategoryManagement from '@/pages/manager/CategoryManagement'
+import OrderManagement from '@/pages/manager/OrderManagement'
   
 function ProtectedRoute() {
   const auth = useAuth()
@@ -222,6 +223,16 @@ export const router = createBrowserRouter([
                 index: true,
                 element: <CategoryManagement />,
                 handle: 'CategoryManagement',
+              },
+            ]
+          },
+          {
+            path: 'vendas',
+            children: [
+              {
+                index: true,
+                element: <OrderManagement />,
+                handle: 'OrderManagement',
               },
             ]
           }
